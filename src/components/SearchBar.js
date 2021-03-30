@@ -11,11 +11,12 @@ class SearchBar extends React.Component {
         });
     };
     */
-
+    /*
     handleSubmit = event => {
         event.preventDefault();
         this.props.handleFormSubmit(this.state.query)
     };
+    */
     
     render() {
         
@@ -27,13 +28,16 @@ class SearchBar extends React.Component {
         
 
         return(
-            <input 
-            style={BarStyling}
-            key="random1"
-            value={this.props.query}
-            placeholder={"Search Players"}
-            onChange={this.props.onChange}
-           />
+            <form>
+                <input 
+                style={BarStyling}
+                key="random1"
+                value={this.props.query}
+                placeholder={"Search Players"}
+                onChange={this.props.onChange}
+                />
+                <input type="submit" value="Submit" onClick={this.props.onSubmit}/>
+            </form>
 
         );
 

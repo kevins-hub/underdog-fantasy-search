@@ -15,6 +15,9 @@ class SearchPage extends React.Component {
           query: '',
           playerList: []
         };
+
+        //this.handleInputChange = this.handleChange.bind(this);
+        //this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleInputChange = e => {
@@ -35,20 +38,25 @@ class SearchPage extends React.Component {
                   query: this.state.query
               }
           })
-          //.then(() => console.log('Search Submitted'))
+
+          .then(() => console.log('Search Submitted'))
           .then((response) => {
               //pList = response;
               
               console.log(response);
-              this.setState({
-                playerList: response
-              });
-              
+              if (typeof response !== 'undefined'){
+                this.setState({
+                    playerList: response
+                  });
+              }
+          })
+          .then(()=> {
+              console.log(`playerList state  = ${this.state.playerList}`);
           })
           .catch(err => {
             console.error(err);
           });
-        
+          
         
         this.setState({
             playerList: pList
@@ -65,9 +73,11 @@ class SearchPage extends React.Component {
              onChange={this.handleInputChange}
              onSubmit={this.handleSubmit}
             />
-            <input type="submit" value="Submit" onClick={this.handleSubmit}/>
+            {/*<input type="submit" value="Submit" onClick={this.handleSubmit}/>*/}
             
+
             <PlayerList playerList={this.state.playerList}/>
+
           </>
         );
         
