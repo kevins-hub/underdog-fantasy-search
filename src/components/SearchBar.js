@@ -20,11 +20,6 @@ class SearchBar extends React.Component {
     
     render() {
         
-        const keywords = "";
-
-        const setKeywords = (word) => {
-            keywords = word;
-        }
         
 
         return(

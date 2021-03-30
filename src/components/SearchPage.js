@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import SearchBar from './SearchBar';
 import PlayerList from './PlayerList';
 import axios from 'axios';
 
-let pList = [];
 
 class SearchPage extends React.Component {
 
@@ -16,8 +15,6 @@ class SearchPage extends React.Component {
           playerList: []
         };
 
-        //this.handleInputChange = this.handleChange.bind(this);
-        //this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleInputChange = e => {
@@ -28,52 +25,37 @@ class SearchPage extends React.Component {
 
     handleSubmit = e => {
         e.preventDefault();
-        
-        //let pList = []
-        const query = this.state.query;
-    
+       
         axios
-          .get(`http://localhost:3000/searchPlayer`, {
-              params: {
-                  query: this.state.query
-              }
-          })
+        .get(`http://localhost:3000/searchPlayer`, {
+            params: {
+                query: this.state.query
+            }
+        })
+        .then((response) => {
 
-          .then(() => console.log('Search Submitted'))
-          .then((response) => {
-              //pList = response;
-              
-              console.log(response);
-              if (typeof response !== 'undefined'){
+            if (typeof response !== 'undefined'){
                 this.setState({
-                    playerList: response
-                  });
-              }
-          })
-          .then(()=> {
-              console.log(`playerList state  = ${this.state.playerList}`);
-          })
-          .catch(err => {
+                    playerList: response.data
+                });
+            }
+        })
+        .catch(err => {
             console.error(err);
-          });
-          
-        
-        this.setState({
-            playerList: pList
         });
+          
         
     };
 
     render() {
         return (
             <>
-            <h1>Player List</h1>
+            <h1>Player Search</h1>
             <SearchBar 
              query={this.state.query} 
              onChange={this.handleInputChange}
              onSubmit={this.handleSubmit}
             />
-            {/*<input type="submit" value="Submit" onClick={this.handleSubmit}/>*/}
             
 
             <PlayerList playerList={this.state.playerList}/>

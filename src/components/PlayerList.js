@@ -11,7 +11,16 @@ const PlayerList = ({playerList}) => {
 
         return (
         <div className="Playerlist-player-result">
-            <h1>{player.first_name}</h1>
+
+            <h3>{player.first_name} {player.last_name}</h3>
+            <p>id: {player.id}</p>            
+            <p>name_brief: {player.name_brief}</p>
+            <p>first_name: {player.first_name}</p>
+            <p>last_name: {player.last_name}</p>
+            <p>position: {player.position}</p>
+            <p>age: {player.age}</p>
+            <p>average_position_age_diff: {player.average_position_age_diff}</p>
+            
         </div>
         
         )

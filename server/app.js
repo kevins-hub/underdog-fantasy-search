@@ -161,16 +161,16 @@ const buildQuery = (attrHash) => {
     console.log(sortedKeys);
     ind = 0
     let ageIndRange = false;
+    let sameLnPos = false;
     for (i = 0; i < sortedKeys.length; i++){
 
         if ((typeof attrHash[sortedKeys[i]] === "number" && attrHash[sortedKeys[i]] >= 0) ||(typeof attrHash[sortedKeys[i]] === "string" && attrHash[sortedKeys[i]].length > 0)){
 
-    
             let addSql = "";
             //console.log(`ind = ${String(ind)} attrHash.size = ${Object.keys(attrHash).length}`)
             if (ind > 0 && ind < Object.keys(attrHash).length - 1){
                 
-                if(ageIndRange && prev === "age-min"){
+                if((ageIndRange && prev === "age-min")){
                     sql += ')';
                 }
 
@@ -178,17 +178,18 @@ const buildQuery = (attrHash) => {
                     sql += " OR "
                     sql = sql.slice(0, sql.indexOf("age")) + '(' + sql.slice(sql.indexOf("age"), sql.length);
                     ageIndRange = true;
-                } else if(sortedKeys[i] === "position" && prev === "lastNameFirstLtr"){
-                    if (attrHash["position"] === attrHash["lastNameFirstLtr"]){
-                        sql += " OR ";
-                    }
+                } else if(sortedKeys[i] === "position" && prev === "lastNameFirstLtr" && attrHash["position"] === attrHash["lastNameFirstLtr"]){
+
+                    sql = sql.slice(0, sql.indexOf("SUBSTRING(last_name")) + "(" + sql.slice(sql.indexOf("SUBSTRING(last_name"),sql.length);
+                    sql += " OR ";
+                    sameLnPos = true;
+                    
                 }
                 else {
                     sql += " AND "
                 }
 
             }
-
 
             switch(sortedKeys[i]) {
                 case "age":
@@ -247,11 +248,14 @@ const buildQuery = (attrHash) => {
 
             sql += addSql;
             ind += 1;
-
             prev = sortedKeys[i];
 
         }
 
+    }
+
+    if (sameLnPos || (ageIndRange) && prev === "age-min"){
+        sql += ')';
     }
 
     sql += ';';
