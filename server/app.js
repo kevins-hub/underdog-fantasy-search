@@ -26,72 +26,101 @@ const con = mysql.createConnection({
     database: "underdog-player-db"
 })
 
-let url = "http://api.cbssports.com/fantasy/players/list?version=3.0&SPORT=baseball&response_format=JSON"
+let urls = ["http://api.cbssports.com/fantasy/players/list?version=3.0&SPORT=baseball&response_format=JSON", "http://api.cbssports.com/fantasy/players/list?version=3.0&SPORT=basketball&response_format=JSON", "http://api.cbssports.com/fantasy/players/list?version=3.0&SPORT=football&response_format=JSON"];
 
 let options = {json: true};
 let posSet = new Set();
 let sportsSet = new Set(["baseball", "basketball", "football"]);
 
 
-request(url, options, (error, res, body) => {
-    if (error){
-        return console.log(error)
-    };
-
-    if (!error && res.statusCode==200){
-        
-        let playersList = body.body.players
-        let posAgeHash = {}
-
-        for(i = 0; i < playersList.length; i++){
-            
-            if ("age" in playersList[i]) {
-
-                if (!(playersList[i].position in posSet)){
-                    posSet.add(playersList[i].position)
-                }
-
-                if (!(playersList[i].position in posAgeHash)){
-                    posAgeHash[playersList[i].position] = [playersList[i].age , 1]
-                } else {
-                    posAgeHash[playersList[i].position][0] += playersList[i].age
-                    posAgeHash[playersList[i].position][1] += 1
-                }
-                con.connect(function(err){
-
-                    if(err)throw err;
-                    let sql = `INSERT INTO Players (name_brief,first_name,last_name,position,age,average_position_age_diff, createdAt, updatedAt) VALUES ("${playersList[i].firstname.charAt(0) + '. ' + playersList[i].lastname.charAt(0) + '.' }", "${playersList[i].firstname}", "${playersList[i].lastname}", "${playersList[i].position}", "${playersList[i].age}", 1, "${new Date().toISOString().slice(0, 19).replace('T', ' ')}", "${new Date().toISOString().slice(0, 19).replace('T', ' ')}")`;
+for (s = 0; s < urls.length; s++){
+  
+    request(urls[s], options, (error, res, body) => {
+        if (error){
+            return console.log(error)
+        };
     
+        if (!error && res.statusCode==200){
+            
+            let playersList = body.body.players
+            let posAgeHash = {}
+            let sport;
+    
+            for(i = 0; i < playersList.length; i++){
+                
+                if ("age" in playersList[i]) {
+
+                    if (!sport){
+                        if ("photo" in playersList[i]){
+                            let deconLink = playersList[i].photo.split('/');
+                            let linkSet = new Set(deconLink);
+                            if( linkSet.has("baseball")) {
+                                sport = "baseball";
+                            } else if (linkSet.has("basketball")){
+                                sport = "basketball";
+
+                            } else if (linkSet.has("football")){
+                                sport = "football";
+                            }
+                            
+                        }
+                    }
+    
+                    if (!(playersList[i].position in posSet)){
+                        posSet.add(playersList[i].position)
+                    }
+    
+                    if (!(playersList[i].position in posAgeHash)){
+                        posAgeHash[playersList[i].position] = [playersList[i].age , 1]
+                    } else {
+                        posAgeHash[playersList[i].position][0] += playersList[i].age
+                        posAgeHash[playersList[i].position][1] += 1
+                    }
+                    con.connect(function(err){
+                        
+                        //console.log(s);
+                        //let sql = "";
+                        if(err)throw err;
+                        if (sport === "baseball") {
+                            sql = `INSERT INTO Players (name_brief,first_name,last_name,position,age,average_position_age_diff, createdAt, updatedAt) VALUES ("${playersList[i].firstname.charAt(0) + '. ' + playersList[i].lastname.charAt(0) + '.' }", "${playersList[i].firstname}", "${playersList[i].lastname}", "${playersList[i].position}", "${playersList[i].age}", 1, "${new Date().toISOString().slice(0, 19).replace('T', ' ')}", "${new Date().toISOString().slice(0, 19).replace('T', ' ')}")`;
+                        } else if (sport === "basketball") {
+                            sql = `INSERT INTO Players (name_brief,first_name,last_name,position,age,average_position_age_diff, createdAt, updatedAt) VALUES ("${playersList[i].firstname + ' ' + playersList[i].lastname.charAt(0) + '.' }", "${playersList[i].firstname}", "${playersList[i].lastname}", "${playersList[i].position}", "${playersList[i].age}", 1, "${new Date().toISOString().slice(0, 19).replace('T', ' ')}", "${new Date().toISOString().slice(0, 19).replace('T', ' ')}")`;
+                        } else if (sport === "football") {
+                            sql = `INSERT INTO Players (name_brief,first_name,last_name,position,age,average_position_age_diff, createdAt, updatedAt) VALUES ("${playersList[i].firstname.charAt(0) + '. ' + playersList[i].lastname }", "${playersList[i].firstname}", "${playersList[i].lastname}", "${playersList[i].position}", "${playersList[i].age}", 1, "${new Date().toISOString().slice(0, 19).replace('T', ' ')}", "${new Date().toISOString().slice(0, 19).replace('T', ' ')}")`;
+                        }
+
+                        con.query(sql, function(err, result) {
+                            if(err) throw err;
+                            
+                        })
+                    })
+                }
+    
+            }
+    
+            con.connect(function(err){
+    
+                if(err)throw err;
+    
+                console.log(posAgeHash);
+                
+                for (let key in posAgeHash){
+                    let sql = `UPDATE Players SET Players.average_position_age_diff = Players.age - ${posAgeHash[key][0]/posAgeHash[key][1]} WHERE position like '${key}';`
+                    
                     con.query(sql, function(err, result) {
                         if(err) throw err;
-                        
                     })
-                })
-            }
-
-        }
-
-        con.connect(function(err){
-
-            if(err)throw err;
-
-            console.log(posAgeHash);
-            
-            for (let key in posAgeHash){
-                let sql = `UPDATE Players SET Players.average_position_age_diff = Players.age - ${posAgeHash[key][0]/posAgeHash[key][1]} WHERE position like '${key}';`
+                }
                 
-                con.query(sql, function(err, result) {
-                    if(err) throw err;
-                })
-            }
             
-        
-        })
+            })
+    
+    
+            console.log(String(i) + " entries added.");
+        };
+    });
 
-
-        console.log(String(i) + " entries added.");
-    };
-});
+}
 
 
 const buildSearchParams = (searchInput) => {
@@ -167,7 +196,6 @@ const buildQuery = (attrHash) => {
         if ((typeof attrHash[sortedKeys[i]] === "number" && attrHash[sortedKeys[i]] >= 0) ||(typeof attrHash[sortedKeys[i]] === "string" && attrHash[sortedKeys[i]].length > 0)){
 
             let addSql = "";
-            //console.log(`ind = ${String(ind)} attrHash.size = ${Object.keys(attrHash).length}`)
             if (ind > 0 && ind < Object.keys(attrHash).length - 1){
                 
                 if((ageIndRange && prev === "age-min")){
@@ -188,7 +216,6 @@ const buildQuery = (attrHash) => {
                 else {
                     sql += " AND "
                 }
-
             }
 
             switch(sortedKeys[i]) {
@@ -229,7 +256,7 @@ const buildQuery = (attrHash) => {
                         positions = attrHash[sortedKeys[i]].split(',');
                         for (x=0; x < positions.length; x++){
                             addSql+= `position like "${positions[x]}"`;
-                            if(x < ltrs.length - 1){
+                            if(x < positions.length - 1){
                                 addSql += " OR "
                             }
                         }
@@ -239,11 +266,7 @@ const buildQuery = (attrHash) => {
                     }
 
                     break;
-                /*
-                case "sport":
-                    addSql = `sport like ${attrHash[key]}`
-                    break;
-                */
+
             }
 
             sql += addSql;
