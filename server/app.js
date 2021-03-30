@@ -77,9 +77,7 @@ for (s = 0; s < urls.length; s++){
                         posAgeHash[playersList[i].position][1] += 1
                     }
                     con.connect(function(err){
-                        
-                        //console.log(s);
-                        //let sql = "";
+
                         if(err)throw err;
                         if (sport === "baseball") {
                             sql = `INSERT INTO Players (name_brief,first_name,last_name,position,age,average_position_age_diff, createdAt, updatedAt) VALUES ("${playersList[i].firstname.charAt(0) + '. ' + playersList[i].lastname.charAt(0) + '.' }", "${playersList[i].firstname}", "${playersList[i].lastname}", "${playersList[i].position}", "${playersList[i].age}", 1, "${new Date().toISOString().slice(0, 19).replace('T', ' ')}", "${new Date().toISOString().slice(0, 19).replace('T', ' ')}")`;
@@ -102,7 +100,7 @@ for (s = 0; s < urls.length; s++){
     
                 if(err)throw err;
     
-                console.log(posAgeHash);
+                //console.log(posAgeHash);
                 
                 for (let key in posAgeHash){
                     let sql = `UPDATE Players SET Players.average_position_age_diff = Players.age - ${posAgeHash[key][0]/posAgeHash[key][1]} WHERE position like '${key}';`
@@ -114,9 +112,9 @@ for (s = 0; s < urls.length; s++){
                 
             
             })
-    
-    
-            console.log(String(i) + " entries added.");
+            
+            console.log(`${String(i)} ${sport} players added.`);
+
         };
     });
 
