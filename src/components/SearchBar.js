@@ -4,19 +4,6 @@ const BarStyling = {width:"20rem",background:"#F2F1F9", border:"none", padding:"
 
 class SearchBar extends React.Component {
 
-    /*
-    handleChange = (event) => {
-        this.setState({
-            query: event.target.value
-        });
-    };
-    */
-    /*
-    handleSubmit = event => {
-        event.preventDefault();
-        this.props.handleFormSubmit(this.state.query)
-    };
-    */
     
     render() {
         
